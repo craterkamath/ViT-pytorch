@@ -59,7 +59,14 @@ def setup(args):
     # Prepare model
     config = CONFIGS[args.model_type]
 
-    num_classes = 10 if args.dataset == "cifar10" else 100
+    num_classes = None
+
+    if args.dataset == "cifar10":
+        num_classes = 10
+    elif args.dataset == "cifar100":
+        num_classes = 100
+    else:
+        num_classes = 2
 
     model = VisionTransformer(config, args.img_size, zero_head=True, num_classes=num_classes)
     model.load_from(np.load(args.pretrained_dir))
@@ -244,7 +251,7 @@ def main():
     # Required parameters
     parser.add_argument("--name", required=True,
                         help="Name of this run. Used for monitoring.")
-    parser.add_argument("--dataset", choices=["cifar10", "cifar100"], default="cifar10",
+    parser.add_argument("--dataset", choices=["cifar10", "cifar100", "hymenoptera"], default="hymenoptera",
                         help="Which downstream task.")
     parser.add_argument("--model_type", choices=["ViT-B_16", "ViT-B_32", "ViT-L_16",
                                                  "ViT-L_32", "ViT-H_14", "R50-ViT-B_16"],
@@ -293,6 +300,8 @@ def main():
                         help="Loss scaling to improve fp16 numeric stability. Only used when fp16 set to True.\n"
                              "0 (default value): dynamic loss scaling.\n"
                              "Positive power of 2: static loss scaling value.\n")
+    parser.add_argument("--augmentation", default=False, type=bool,
+                        help="Whether augmentation will be added to images or not")
     args = parser.parse_args()
 
     # Setup CUDA, GPU & distributed training

@@ -18,6 +18,16 @@ def get_loader(args):
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
     ])
+    transform_train_aug = transforms.Compose([
+        transforms.RandomResizedCrop((args.img_size, args.img_size), scale=(0.05, 1.0)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+        transforms.RandomHorizontalFlip(p=0.2),
+        transforms.RandomApply([transforms.RandomChoice([transforms.RandomAffine(degrees=20, translate=(0.1,0.3), scale=(0.05, 0.75)),transforms.RandomRotation(50)])],p=0.2),
+        transforms.RandomApply([transforms.RandomAdjustSharpness(sharpness_factor=2)],p=0.1),
+        transforms.RandomApply([transforms.GaussianBlur(kernel_size=(3, 5), sigma=(0.1, 5))],p=0.1),
+        transforms.RandomApply([transforms.RandomChoice([transforms.RandomAutocontrast(),transforms.ColorJitter(brightness=0.5, hue=0.3)])],p=0.2)
+    ])
     transform_test = transforms.Compose([
         transforms.Resize((args.img_size, args.img_size)),
         transforms.ToTensor(),
@@ -34,7 +44,7 @@ def get_loader(args):
                                    download=True,
                                    transform=transform_test) if args.local_rank in [-1, 0] else None
 
-    else:
+    elif args.dataset == "cifar100":
         trainset = datasets.CIFAR100(root="./data",
                                      train=True,
                                      download=True,
@@ -43,6 +53,15 @@ def get_loader(args):
                                     train=False,
                                     download=True,
                                     transform=transform_test) if args.local_rank in [-1, 0] else None
+    else:
+        trainset = datasets.ImageFolder(root="./data/hymenoptera_data/train/",
+                                        transform=transform_train)
+        if args.augmentation:
+            trainset = datasets.ImageFolder(root="./data/hymenoptera_data/train/",
+                                        transform=transform_train_aug)
+        testset = datasets.ImageFolder(root="./data/hymenoptera_data/val/",
+                                        transform=transform_test) if args.local_rank in [-1, 0] else None
+
     if args.local_rank == 0:
         torch.distributed.barrier()
 

@@ -95,6 +95,13 @@ Visualization code can be found at [visualize_attention_map](./visualize_attenti
 
 ![fig3](./img/figure3.png)
 
+## Usage on Hymenoptera
+
+Provides best results with pre-trained weights and smaller training batch size
+```
+python3 train.py --name hymenoptera_sample2 --dataset hymenoptera --model_type ViT-B_16 --pretrained_dir checkpoint/ViT-B_16.npz --train_batch_size 32 --eval_every 1 --num_steps 10
+```
+
 
 ## Reference
 * [Google ViT](https://github.com/google-research/vision_transformer)
